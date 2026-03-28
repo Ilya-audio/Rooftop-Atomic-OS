@@ -1,0 +1,22 @@
+name: Build Rooftop ISO
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build ISO using bootc-image-builder
+        uses: osbuild/bootc-image-builder-action@v1
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/rooftop-atomic:latest
+          config: config.toml
+          type: iso
