@@ -49,7 +49,7 @@ jobs:
             -v ${{ github.workspace }}/config.toml:/config.toml:ro \
             -v ${{ github.workspace }}/output:/output \
             quay.io/centos-bootc/bootc-image-builder:latest \
-            build --image /image.tar --config /config.toml --output /output --type iso
+            build /image.tar --config /config.toml --output /output --type iso
 
       # 6️⃣ Проверяем результат
       - name: List generated ISO
