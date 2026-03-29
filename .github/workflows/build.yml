@@ -26,9 +26,8 @@ jobs:
 
       # ШАГ 2: Превращаем собранный образ в ISO
       - name: Build ISO using bootc-image-builder
-        uses: osbuild/bootc-image-builder-action@main
+       uses: osbuild/bootc-image-builder-action@main
         with:
-          # Теперь мы указываем на локальный образ, который только что собрали
-          image: localhost/rooftop-atomic:latest
-          config-file: config.toml
+          image: rooftop-atomic:latest
+          config-file: ./config.toml
           types: iso
