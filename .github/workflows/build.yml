@@ -12,45 +12,53 @@ jobs:
       packages: write
 
     steps:
-      # 1️⃣ Клонируем репозиторий
+      # 1. Клонируем репозиторий
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Проверяем наличие файлов
-      - name: Verify files
+      # 2. Очистка места (Gethub по умолчанию забит мусором)
+      # Это даст нам дополнительные ~20ГБ места
+      - name: Free Disk Space
         run: |
-          echo "Current dir: $PWD"
-          ls -l
-          file config.toml
-          ls -l Containerfile
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      # 3️⃣ Собираем образ Fedora 43 + GNOME + мультимедиа
+      # 3. Собираем контейнер через Buildah
       - name: Build image with Buildah
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: rooftop-atomic
           tags: latest
-          containerfiles: |
-            ./Containerfile
+          containerfiles: ./Containerfile
 
-      # 4️⃣ Экспортируем локальный образ в tar, чтобы bootc-image-builder видел его
+      # 4. Сохраняем образ в локальный tar-архив
+      # Это нужно, чтобы билдер мог прочитать его без сети
       - name: Save image as tar
         run: |
-          buildah push rooftop-atomic:latest docker-archive:rooftop-atomic.tar
+          buildah push rooftop-atomic:latest docker-archive:${{ github.workspace }}/rooftop-atomic.tar
 
-      # 5️⃣ Собираем ISO через bootc-image-builder
+      # 5. Сборка ISO (Rootful режим через sudo)
       - name: Build ISO using bootc-image-builder
         run: |
           mkdir -p ./output
-          podman run --rm --privileged \
+          # Запускаем через sudo, чтобы избежать ошибки "must be run in rootful"
+          sudo podman run --rm --privileged \
             --security-opt label=type:unconfined_t \
-            -v ${{ github.workspace }}/rooftop-atomic.tar:/image.tar:ro \
-            -v ${{ github.workspace }}/config.toml:/config.toml:ro \
-            -v ${{ github.workspace }}/output:/output \
+            -v ${{ github.workspace }}:/workspace:rw \
             quay.io/centos-bootc/bootc-image-builder:latest \
-            build /image.tar --config /config.toml --output /output --type iso
+            build \
+            --config /workspace/config.toml \
+            --output /workspace/output \
+            --type iso \
+            docker-archive:/workspace/rooftop-atomic.tar
 
-      # 6️⃣ Проверяем результат
-      - name: List generated ISO
-        run: ls -lh ./output
+      # 6. Загружаем готовый ISO в артефакты GitHub
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rooftop-Atomic-ISO
+          path: ./output/iso/*.iso
+          if-no-files-found: error
