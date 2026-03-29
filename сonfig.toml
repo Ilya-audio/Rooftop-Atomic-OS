@@ -17,11 +17,12 @@ mountpoint = "/"
 fs-type = "ext4"
 size = "100%"
 
-#[[customizations.user]]
-#name = "mixengineer"
-#password = "$6$rounds=4096$salt$LpUvJm9zU8X6pGvF6H8f9K/4/m8jO/vUvS1yGvQ1"
-#groups = ["wheel"]
-#description = "Mix Engineer"
+[[customizations.user]]
+name = "mixengineer"
+#pas: rooftop
+password = "$6$rounds=4096$salt$LpUvJm9zU8X6pGvF6H8f9K/4/m8jO/vUvS1yGvQ1"
+groups = ["wheel"]
+description = "Mix Engineer"
 
 [customizations.network]
 hostname = "rooftop-atomic"
