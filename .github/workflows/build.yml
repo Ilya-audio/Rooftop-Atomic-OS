@@ -16,7 +16,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2. Сборка контейнера через Buildah
+      # 2. Убираем лишние файлы для диска
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      # 3. Сборка образа через Buildah
       - name: Build image with Buildah
         id: build-image
         uses: redhat-actions/buildah-build@v2
@@ -25,27 +33,34 @@ jobs:
           tags: latest
           containerfiles: ./Containerfile
 
-      # 3. Сохраняем образ в tar
-      - name: Save image as tar
+      # 4. Запуск локального registry для rootful Podman
+      - name: Start local Podman registry
         run: |
-          mkdir -p ./builder_storage
-          buildah push rooftop-atomic:latest docker-archive:${{ github.workspace }}/rooftop-atomic.tar
+          sudo podman run -d --name registry -p 5000:5000 --restart=always docker.io/library/registry:2
 
-      # 4. Сборка ISO через bootc-image-builder
+      # 5. Push собранного образа в локальный registry
+      - name: Push image to local registry
+        run: |
+          sudo podman tag rooftop-atomic:latest localhost:5000/rooftop-atomic:latest
+          sudo podman push localhost:5000/rooftop-atomic:latest
+
+      # 6. Сборка ISO через bootc-image-builder (rootful, с монтированием overlay)
       - name: Build ISO using bootc-image-builder
         run: |
           mkdir -p ./output
           sudo podman run --rm --privileged \
+            --security-opt label=type:unconfined_t \
+            -v /var/lib/containers/storage:/var/lib/containers/storage:rw \
             -v ${{ github.workspace }}:/workspace:rw \
-            -v ${{ github.workspace }}/builder_storage:/var/lib/containers/storage:rw \
+            -v ${{ github.workspace }}/output:/output:rw \
             quay.io/centos-bootc/bootc-image-builder:latest \
             build \
-            /workspace/rooftop-atomic.tar \
             --config /workspace/config.toml \
-            --output /workspace/output \
-            --type anaconda-iso
+            --output /output \
+            --type anaconda-iso \
+            localhost:5000/rooftop-atomic:latest
 
-      # 5. Загружаем ISO как артефакт
+      # 7. Загрузка ISO как артефакта
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
