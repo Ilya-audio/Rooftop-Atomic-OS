@@ -16,15 +16,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2. Очистка места на диске (для Fedora это полезно)
-      - name: Free Disk Space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-
-      # 3. Сборка контейнера через Buildah
+      # 2. Сборка контейнера через Buildah
       - name: Build image with Buildah
         id: build-image
         uses: redhat-actions/buildah-build@v2
@@ -33,24 +25,27 @@ jobs:
           tags: latest
           containerfiles: ./Containerfile
 
-      # 4. Сборка ISO напрямую из локального образа
+      # 3. Сохраняем образ в tar
+      - name: Save image as tar
+        run: |
+          mkdir -p ./builder_storage
+          buildah push rooftop-atomic:latest docker-archive:${{ github.workspace }}/rooftop-atomic.tar
+
+      # 4. Сборка ISO через bootc-image-builder
       - name: Build ISO using bootc-image-builder
         run: |
           mkdir -p ./output
-          mkdir -p ./builder_storage
-
           sudo podman run --rm --privileged \
-            --security-opt label=type:unconfined_t \
             -v ${{ github.workspace }}:/workspace:rw \
             -v ${{ github.workspace }}/builder_storage:/var/lib/containers/storage:rw \
             quay.io/centos-bootc/bootc-image-builder:latest \
             build \
-            --image localhost/rooftop-atomic:latest \
+            --archive /workspace/rooftop-atomic.tar \
             --config /workspace/config.toml \
             --output /workspace/output \
             --type anaconda-iso
 
-      # 5. Загрузка готового ISO в артефакты
+      # 5. Загружаем ISO как артефакт
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
