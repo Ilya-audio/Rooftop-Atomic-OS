@@ -40,7 +40,7 @@ jobs:
             -v ${{ github.workspace }}/builder_storage:/var/lib/containers/storage:rw \
             quay.io/centos-bootc/bootc-image-builder:latest \
             build \
-            --archive /workspace/rooftop-atomic.tar \
+            /workspace/rooftop-atomic.tar \
             --config /workspace/config.toml \
             --output /workspace/output \
             --type anaconda-iso
