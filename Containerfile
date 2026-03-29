@@ -9,7 +9,6 @@ RUN dnf install -y \
     dnf-plugins-core \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
     https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
-    dnf clean all
 
 # 3. Minimal GNOME installation (No bloatware)
 RUN dnf install -y \
@@ -31,21 +30,25 @@ RUN dnf install -y \
 	pavucontrol \
 	firefox gnome-extensions-app \
 	celluloid
-# 4.1 Multimedia & Codecs (The "Must-Have" for Studio)
+# 4.1 Multimedia & Codecs
 RUN dnf install -y \
+	mesa-va-drivers \
+	mesa-vdpau-drivers \
     gstreamer1-plugins-ugly \
     gstreamer1-plugins-bad-free-extras \
-    gstreamer1-plugins-bad-freeworld gstreamer1-plugins-libav \
+    gstreamer1-plugins-bad-freeworld \
+    gstreamer1-libav \
     gstreamer1-vaapi \
-    # FFmpeg full version (overwrites the stripped-down Fedora version)
-    ffmpeg-devel \
     ffmpeg \
-    # OpenH264
-    gstreamer1-plugin-openh264 \
-    mozilla-openh264
+    pipewire \
+    pipewire-utils \
+
+
 # 5. Critical: Enable Login Manager and GUI boot
 RUN systemctl enable gdm.service
 RUN systemctl set-default graphical.target
 
-# 6. Cleanup
+# 6. Finish
+RUN systemctl enable firstboot-setup.service
+RUN systemctl enable bootloader-update.service
 RUN dnf clean all
