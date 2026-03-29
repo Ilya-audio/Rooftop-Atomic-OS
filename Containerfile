@@ -8,8 +8,8 @@ LABEL version="43.1.0-studio"
 RUN dnf install -y \
     dnf-plugins-core \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
-    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
-
+    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
+	dnf clean all
 # 3. Minimal GNOME installation (No bloatware)
 RUN dnf install -y \
 	gnome-shell \
@@ -18,8 +18,8 @@ RUN dnf install -y \
 	gnome-control-center \
 	gnome-terminal \
 	gnome-system-monitor \
-	mutter
-	
+	mutter && \
+	dnf clean all
 # 3.1 GNOME plugins
 # Раздел в доработке
 
@@ -29,7 +29,8 @@ RUN dnf install -y \
 	qpwgraph \
 	pavucontrol \
 	firefox gnome-extensions-app \
-	celluloid
+	celluloid && \
+	dnf clean all
 # 4.1 Multimedia & Codecs
 RUN dnf install -y \
 	mesa-va-drivers \
@@ -41,8 +42,8 @@ RUN dnf install -y \
     gstreamer1-vaapi \
     ffmpeg \
     pipewire \
-    pipewire-utils \
-
+    pipewire-utils && \
+	dnf clean all
 
 # 5. Critical: Enable Login Manager and GUI boot
 RUN systemctl enable gdm.service
