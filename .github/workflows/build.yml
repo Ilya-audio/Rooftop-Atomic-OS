@@ -14,19 +14,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # ШАГ 1: Собираем сам образ системы из Containerfile
-      - name: Build Image
-        id: build-image
+      - name: Build Container Image
         uses: redhat-actions/buildah-build@v2
         with:
           image: rooftop-atomic
           tags: latest
-          containerfiles: |
-            ./Containerfile
+          containerfiles: ./Containerfile
 
-      # ШАГ 2: Превращаем собранный образ в ISO
+      - name: Verify config.toml
+        run: ls -l ./config.toml
+
       - name: Build ISO using bootc-image-builder
-       uses: osbuild/bootc-image-builder-action@main
+        uses: osbuild/bootc-image-builder-action@main
         with:
           image: rooftop-atomic:latest
           config-file: ./config.toml
