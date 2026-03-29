@@ -3,8 +3,8 @@
 unattended = false
 
 [[customizations.user]]
-name = "mixengineer"
+name = "user"
 # пароль SHA-512
-password = "$6$rounds=4096$salt$LpUvJm9zU8X6pGvF6H8f9K/4/m8jO/vUvS1yGvQ1"
+password = "rooftop"
 groups = ["wheel"]
 description = "Mix Engineer"
