@@ -50,6 +50,7 @@ RUN systemctl enable gdm.service
 RUN systemctl set-default graphical.target
 
 # 6. Finish
-RUN systemctl enable firstboot-setup.service
+RUN dnf install -y gnome-initial-setup
+RUN systemctl enable initial-setup.service
 RUN systemctl enable bootloader-update.service
 RUN dnf clean all
