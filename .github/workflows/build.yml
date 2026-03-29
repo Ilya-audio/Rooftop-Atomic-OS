@@ -10,25 +10,47 @@ jobs:
     permissions:
       contents: read
       packages: write
+
     steps:
+      # 1️⃣ Клонируем репозиторий
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Build Container Image
+      # 2️⃣ Проверяем наличие файлов
+      - name: Verify files
+        run: |
+          echo "Current dir: $PWD"
+          ls -l
+          file config.toml
+          ls -l Containerfile
+
+      # 3️⃣ Собираем образ Fedora 43 + GNOME + мультимедиа
+      - name: Build image with Buildah
+        id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: rooftop-atomic
           tags: latest
-          containerfiles: ./Containerfile
+          containerfiles: |
+            ./Containerfile
 
-      - name: Debug - List files
+      # 4️⃣ Экспортируем локальный образ в tar, чтобы bootc-image-builder видел его
+      - name: Save image as tar
         run: |
-          pwd
-          ls -R
+          buildah push rooftop-atomic:latest docker-archive:rooftop-atomic.tar
 
+      # 5️⃣ Собираем ISO через bootc-image-builder
       - name: Build ISO using bootc-image-builder
-        uses: osbuild/bootc-image-builder-action@main
-        with:
-          image: localhost/rooftop-atomic:latest
-          config-file: ${{ github.workspace }}/config.toml
-          types: iso
+        run: |
+          mkdir -p ./output
+          podman run --rm --privileged \
+            --security-opt label=type:unconfined_t \
+            -v ${{ github.workspace }}/rooftop-atomic.tar:/image.tar:ro \
+            -v ${{ github.workspace }}/config.toml:/config.toml:ro \
+            -v ${{ github.workspace }}/output:/output \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            build --image /image.tar --config /config.toml --output /output --type iso
+
+      # 6️⃣ Проверяем результат
+      - name: List generated ISO
+        run: ls -lh ./output
