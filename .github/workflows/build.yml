@@ -21,14 +21,14 @@ jobs:
           tags: latest
           containerfiles: ./Containerfile
 
-     - name: Debug - List files
-      run: |
-        pwd
-        ls -R
+      - name: Debug - List files
+        run: |
+          pwd
+          ls -R
 
       - name: Build ISO using bootc-image-builder
         uses: osbuild/bootc-image-builder-action@main
         with:
-          image: rooftop-atomic:latest
-          config-file: ${{ github.workspace }}/config.toml
+          image: localhost/rooftop-atomic:latest
+          config-file: config.toml
           types: iso
