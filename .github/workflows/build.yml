@@ -14,11 +14,21 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # ШАГ 1: Собираем сам образ системы из Containerfile
+      - name: Build Image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: rooftop-atomic
+          tags: latest
+          containerfiles: |
+            ./Containerfile
+
+      # ШАГ 2: Превращаем собранный образ в ISO
       - name: Build ISO using bootc-image-builder
         uses: osbuild/bootc-image-builder-action@main
         with:
-          # Указываем контекст сборки (текущая папка)
-          # Это заставит его увидеть твой Containerfile
+          # Теперь мы указываем на локальный образ, который только что собрали
           image: localhost/rooftop-atomic:latest
           config-file: config.toml
           types: iso
