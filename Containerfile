@@ -8,8 +8,7 @@ LABEL version="43.1.0-studio"
 RUN dnf install -y \
     dnf-plugins-core \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
-    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
-    dnf config-manager --set-enabled fedora-cisco-openh264 && \
+    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm && \
     dnf clean all
 
 # 3. Minimal GNOME installation (No bloatware)
