@@ -21,8 +21,10 @@ jobs:
           tags: latest
           containerfiles: ./Containerfile
 
-      - name: Verify config.toml
-        run: ls -l ./config.toml
+     - name: Debug - List files
+      run: |
+        pwd
+        ls -R
 
       - name: Build ISO using bootc-image-builder
         uses: osbuild/bootc-image-builder-action@main
