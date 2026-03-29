@@ -1,5 +1,4 @@
 name: Build Rooftop ISO
-
 on:
   push:
     branches: [main, master]
@@ -8,17 +7,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       packages: write
 
     steps:
-      # 1️⃣ Клонируем репозиторий
+      # 1. Клонируем репозиторий
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Освобождаем место (иначе Fedora может не влезть)
+      # 2. Очистка места на диске (для Fedora это полезно)
       - name: Free Disk Space
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -26,51 +24,33 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      # 3️⃣ Проверяем, что config.toml реально есть
-      - name: Verify files
-        run: |
-          echo "PWD: $PWD"
-          ls -l
-          file config.toml
-
-      # 4️⃣ Собираем контейнер (bootc образ)
+      # 3. Сборка контейнера через Buildah
       - name: Build image with Buildah
+        id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: rooftop-atomic
           tags: latest
           containerfiles: ./Containerfile
 
-      # 5️⃣ Экспортируем образ в tar
-      - name: Save image as tar
-        run: |
-          buildah push rooftop-atomic:latest docker-archive:${{ github.workspace }}/rooftop-atomic.tar
-
-      # 6️⃣ Проверяем podman storage (debug, можно оставить)
-      - name: Debug podman storage
-        run: sudo podman info | grep -A5 store
-
-      # 7️⃣ Сборка ISO (КЛЮЧЕВОЙ шаг)
+      # 4. Сборка ISO напрямую из локального образа
       - name: Build ISO using bootc-image-builder
         run: |
           mkdir -p ./output
+          mkdir -p ./builder_storage
 
           sudo podman run --rm --privileged \
             --security-opt label=type:unconfined_t \
-            -v /var/lib/containers/storage:/var/lib/containers/storage \
             -v ${{ github.workspace }}:/workspace:rw \
+            -v ${{ github.workspace }}/builder_storage:/var/lib/containers/storage:rw \
             quay.io/centos-bootc/bootc-image-builder:latest \
             build \
+            --image localhost/rooftop-atomic:latest \
             --config /workspace/config.toml \
             --output /workspace/output \
-            --type anaconda-iso \
-            docker-archive:/workspace/rooftop-atomic.tar
+            --type anaconda-iso
 
-      # 8️⃣ Проверяем результат
-      - name: List output
-        run: ls -lh ./output
-
-      # 9️⃣ Загружаем ISO как артефакт
+      # 5. Загрузка готового ISO в артефакты
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
