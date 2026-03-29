@@ -63,7 +63,7 @@ jobs:
             build \
             --config /workspace/config.toml \
             --output /workspace/output \
-            --type iso \
+            --type anaconda-iso \
             docker-archive:/workspace/rooftop-atomic.tar
 
       # 8️⃣ Проверяем результат
