@@ -5,13 +5,13 @@ LABEL name="Rooftop Atomic OS"
 LABEL version="43.1.0-studio"
 
 # 2. Setup RPM Fusion (Non-free is essential for audio/video codecs)
-RUN dnf -y install dnf5-plugins
 RUN dnf install -y \
-	https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-43.noarch.rpm \
-	https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-43.noarch.rpm \
-	fedora-repos-openh264 && \
-	dnf config-manager --set-enabled fedora-cisco-openh264 && \
-dnf clean all
+    dnf-plugins-core \
+    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
+    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm \
+    fedora-repos-openh264 && \
+    dnf config-manager --set-enabled fedora-cisco-openh264 && \
+    dnf clean all
 
 # 3. Minimal GNOME installation (No bloatware)
 RUN dnf install -y \
