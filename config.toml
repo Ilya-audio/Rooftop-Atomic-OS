@@ -23,3 +23,9 @@ enable = [
 #volume_id = "RAOS"
 #application_id = "Test image"
 #publisher = "Rooftop Studio"
+
+[customizations.installer.kickstart]
+contents = """
+interactive
+bootloader --location=none
+"""
