@@ -19,7 +19,7 @@ enable = [
 "org.fedoraproject.Anaconda.Modules.Users" ,
 ]
 
-[customizations.iso]
-volume_id = "RAOS(test)"
-application_id = "Test image"
-publisher = "Rooftop Studio"
+#[customizations.iso]
+#volume_id = "RAOS"
+#application_id = "Test image"
+#publisher = "Rooftop Studio"
