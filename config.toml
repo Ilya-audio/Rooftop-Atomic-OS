@@ -2,12 +2,12 @@
 # false = установка интерактивная через Anaconda
 unattended = false
 
-#[[customizations.user]]
-#name = "user"
+[[customizations.user]]
+name = "user"
 # пароль SHA-512
-#password = "rooftop"
-#groups = ["wheel"]
-#description = "Mix Engineer"
+password = "rooftop"
+groups = ["wheel"]
+description = "Mix Engineer"
 
 [customizations.installer.modules]
 enable = [
@@ -23,9 +23,3 @@ enable = [
 #volume_id = "RAOS"
 #application_id = "Test image"
 #publisher = "Rooftop Studio"
-
-[customizations.installer.kickstart]
-contents = """
-interactive
-bootloader --location=none
-"""
