@@ -50,5 +50,4 @@ RUN systemctl enable gdm.service
 RUN systemctl set-default graphical.target
 
 # 6. Finish
-RUN dnf remove -y bootupd && dnf clean all
 RUN dnf clean all
